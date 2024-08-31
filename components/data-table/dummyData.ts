@@ -1,0 +1,23 @@
+// frontend/components/data-table/dummyData.ts
+export const dummyData = [
+  { id: 1, name: 'Alice', age: 25, city: 'New York', date: '2024-08-01', time: '10:00 AM' },
+  { id: 2, name: 'Bob', age: 30, city: 'San Francisco', date: '2024-08-02', time: '11:00 AM' },
+  { id: 3, name: 'Charlie', age: 35, city: 'Los Angeles', date: '2024-08-03', time: '12:00 PM' },
+  { id: 4, name: 'David', age: 28, city: 'Chicago', date: '2024-08-04', time: '01:00 PM' },
+  { id: 5, name: 'Eva', age: 22, city: 'Miami', date: '2024-08-05', time: '02:00 PM' },
+  { id: 6, name: 'Frank', age: 40, city: 'Houston', date: '2024-08-06', time: '03:00 PM' },
+  { id: 7, name: 'Grace', age: 27, city: 'Phoenix', date: '2024-08-07', time: '04:00 PM' },
+  { id: 8, name: 'Hannah', age: 31, city: 'Philadelphia', date: '2024-08-08', time: '05:00 PM' },
+  { id: 9, name: 'Ian', age: 26, city: 'San Antonio', date: '2024-08-09', time: '06:00 PM' },
+  { id: 10, name: 'Jack', age: 33, city: 'San Diego', date: '2024-08-10', time: '07:00 PM' },
+  { id: 11, name: 'Karen', age: 29, city: 'Dallas', date: '2024-08-11', time: '08:00 PM' },
+  { id: 12, name: 'Leo', age: 34, city: 'Austin', date: '2024-08-12', time: '09:00 PM' },
+  { id: 13, name: 'Mona', age: 32, city: 'San Jose', date: '2024-08-13', time: '10:00 PM' },
+  { id: 14, name: 'Nick', age: 23, city: 'Fort Worth', date: '2024-08-14', time: '11:00 PM' },
+  { id: 15, name: 'Olivia', age: 37, city: 'Jacksonville', date: '2024-08-15', time: '12:00 AM' },
+  { id: 16, name: 'Paul', age: 38, city: 'Columbus', date: '2024-08-16', time: '01:00 AM' },
+  { id: 17, name: 'Quinn', age: 24, city: 'Charlotte', date: '2024-08-17', time: '02:00 AM' },
+  { id: 18, name: 'Rita', age: 36, city: 'Indianapolis', date: '2024-08-18', time: '03:00 AM' },
+  { id: 19, name: 'Steve', age: 41, city: 'San Francisco', date: '2024-08-19', time: '04:00 AM' },
+  { id: 20, name: 'Tina', age: 39, city: 'Seattle', date: '2024-08-20', time: '05:00 AM' },
+];
