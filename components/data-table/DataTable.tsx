@@ -1,7 +1,6 @@
 'use client';
 import React, { useState } from 'react';
 import { DataTableHeader } from './DataTableHeader';
-import { dummyData } from './dummyData';
 import { DataRow, DataTableProps } from '@/types/dataTableTypes';
 
 export const DataTable: React.FC<DataTableProps> = ({ data }) => {
@@ -40,13 +39,38 @@ export const DataTable: React.FC<DataTableProps> = ({ data }) => {
     if (sortColumn === null) return 0;
     const aValue = a[sortColumn as keyof DataRow];
     const bValue = b[sortColumn as keyof DataRow];
+
     if (typeof aValue === 'string' && typeof bValue === 'string') {
+      if (sortColumn === 'time') {
+        // Handle time sorting
+        const [aTime, aPeriod] = aValue.split(' ') as [string, string];
+        const [bTime, bPeriod] = bValue.split(' ') as [string, string];
+        const aTimeMinutes = convertTimeToMinutes(aTime, aPeriod);
+        const bTimeMinutes = convertTimeToMinutes(bTime, bPeriod);
+        return (aTimeMinutes - bTimeMinutes) * (sortDirection === 'asc' ? 1 : -1);
+      }
+
+      // General string sorting
       const aDate = new Date(aValue);
       const bDate = new Date(bValue);
-      return (aDate.getTime() - bDate.getTime()) * (sortDirection === 'asc' ? 1 : -1);
+      if (!isNaN(aDate.getTime()) && !isNaN(bDate.getTime())) {
+        return (aDate.getTime() - bDate.getTime()) * (sortDirection === 'asc' ? 1 : -1);
+      }
+      return (aValue < bValue ? -1 : 1) * (sortDirection === 'asc' ? 1 : -1);
     }
-    return (aValue < bValue ? -1 : 1) * (sortDirection === 'asc' ? 1 : -1);
+
+    if (typeof aValue === 'number' && typeof bValue === 'number') {
+      return (aValue - bValue) * (sortDirection === 'asc' ? 1 : -1);
+    }
+
+    return 0; // Default case if types don't match
   });
+
+  const convertTimeToMinutes = (time: string, period: string) => {
+    const [hours, minutes] = time.split(':').map(Number);
+    const totalMinutes = (hours % 12) * 60 + minutes + (period === 'PM' ? 720 : 0);
+    return totalMinutes;
+  };
 
   return (
     <div className="flex items-center justify-center min-h-screen p-4 bg-gray-50">
