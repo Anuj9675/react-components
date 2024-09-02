@@ -1,8 +1,8 @@
 'use client';
 import React, { useState } from 'react';
 import { DataTableHeaderProps } from '@/types/dataTableTypes';
-import { FaSortUp, FaSortDown, FaTrash, FaPen, FaPlus } from 'react-icons/fa';
-import { GrPowerReset } from "react-icons/gr";
+import { FaSortUp, FaSortDown } from 'react-icons/fa';
+import { MdLibraryAdd } from "react-icons/md";
 
 export const DataTableHeader: React.FC<DataTableHeaderProps> = ({
   sortColumn,
@@ -14,12 +14,13 @@ export const DataTableHeader: React.FC<DataTableHeaderProps> = ({
   onFilterChangeTime,
   onSortChange,
   columns,
-  onEditClick,
-  onDeleteClick,
   onAddClick,
 }) => {
-  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
-  const [filterText, setFilterText] = useState<string>('');
+  const [filterTextName, setFilterTextName] = useState<string>('');
+  const [filterTextAge, setFilterTextAge] = useState<string>('');
+  const [filterTextCity, setFilterTextCity] = useState<string>('');
+  const [filterTextDate, setFilterTextDate] = useState<string>('');
+  const [filterTextTime, setFilterTextTime] = useState<string>('');
 
   const handleSortClick = (column: string, direction: 'asc' | 'desc') => {
     onSortChange(column);
@@ -32,75 +33,81 @@ export const DataTableHeader: React.FC<DataTableHeaderProps> = ({
     return 'text-blue-500';
   };
 
-  const handleFilterChange = (value: string) => {
-    setFilterText(value);
-    if (selectedFilter === 'Name') onFilterChangeName(value);
-    else if (selectedFilter === 'Age') onFilterChangeAge(value);
-    else if (selectedFilter === 'City') onFilterChangeCity(value);
-    else if (selectedFilter === 'Date') onFilterChangeDate(value);
-    else if (selectedFilter === 'Time') onFilterChangeTime(value);
-  };
-
-  const resetFilter = () => {
-    setSelectedFilter(null);
-    setFilterText('');
+  const handleFilterChange = (column: string, value: string) => {
+    switch (column) {
+      case 'Name':
+        setFilterTextName(value);
+        onFilterChangeName(value);
+        break;
+      case 'Age':
+        setFilterTextAge(value);
+        onFilterChangeAge(value);
+        break;
+      case 'City':
+        setFilterTextCity(value);
+        onFilterChangeCity(value);
+        break;
+      case 'Date':
+        setFilterTextDate(value);
+        onFilterChangeDate(value);
+        break;
+      case 'Time':
+        setFilterTextTime(value);
+        onFilterChangeTime(value);
+        break;
+      default:
+        break;
+    }
   };
 
   return (
-    <div className="sticky top-0 z-10 bg-white border-b border-gray-300"> 
-    
+    <div className="sticky top-0 z-10 bg-white border-b border-gray-300">
       <div className="p-4 flex flex-col md:flex-row items-end md:items-center justify-end space-y-4 md:space-y-0">
-      
-        <div className="flex flex-wrap gap-4">
-          {selectedFilter ? (
-            <>
-              <input
-                type="text"
-                placeholder={`Search ${selectedFilter}`}
-                value={filterText}
-                onChange={(e) => handleFilterChange(e.target.value)}
-                className="border border-gray-300 rounded p-2 text-sm sm:text-base md:text-md w-40"
-              />
-              <button
-                onClick={resetFilter}
-                className="flex items-center justify-center border w-10 h-10 border-gray-300 rounded-full text-base  bg-red-500 text-white"
-              >
-                <GrPowerReset/>
-              </button>
-            </>
-          ) : (
-            <select
-              onChange={(e) => setSelectedFilter(e.target.value)}
-              value={selectedFilter || ''}
-              className="border border-gray-300 rounded p-2 text-sm sm:text-base md:text-md w-40"
-            >
-              <option value="" disabled>
-                Select Filter
-              </option>
-              <option value="Name">Name</option>
-              <option value="Age">Age</option>
-              <option value="City">City</option>
-              <option value="Date">Date</option>
-              <option value="Time">Time</option>
-            </select>
-          )}
+        <div className="flex flex-row w-full gap-4">
+          <input
+            type="text"
+            placeholder="Search Name"
+            value={filterTextName}
+            onChange={(e) => handleFilterChange('Name', e.target.value)}
+            className="border border-gray-300 rounded p-2 text-sm sm:text-base md:text-md w-full md:w-32"
+          />
+          <input
+            type="text"
+            placeholder="Search Age"
+            value={filterTextAge}
+            onChange={(e) => handleFilterChange('Age', e.target.value)}
+            className="border border-gray-300 rounded p-2 text-sm sm:text-base md:text-md w-full md:w-32"
+          />
+          <input
+            type="text"
+            placeholder="Search City"
+            value={filterTextCity}
+            onChange={(e) => handleFilterChange('City', e.target.value)}
+            className="border border-gray-300 rounded p-2 text-sm sm:text-base md:text-md w-full md:w-32"
+          />
+          <input
+            type="text"
+            placeholder="Search Date"
+            value={filterTextDate}
+            onChange={(e) => handleFilterChange('Date', e.target.value)}
+            className="border border-gray-300 rounded p-2 text-sm sm:text-base md:text-md w-full md:w-32"
+          />
+          <input
+            type="text"
+            placeholder="Search Time"
+            value={filterTextTime}
+            onChange={(e) => handleFilterChange('Time', e.target.value)}
+            className="border border-gray-300 rounded p-2 text-sm sm:text-base md:text-md w-full  md:w-32"
+          />
         </div>
-        
       </div>
-      <div className=' flex justify-end items-center p-4 border border-gray-300'>
-      <div className="flex space-x-4 ">
-          <button
-            onClick={onDeleteClick}
-            className="flex items-center space-x-2"
-          >
-            <FaTrash className='bg-red-500 text-white p-0.5 text-sm sm:text-base md:text-md' />
-            <span className='text-sm sm:text-base md:text-md'>Delete</span>
-          </button>
+      <div className='flex justify-end items-center p-2 border border-gray-300'>
+        <div className="flex space-x-4">
           <button
             onClick={onAddClick}
-            className=" text-black flex items-center space-x-2 "
+            className="bg-green-500 text-white flex items-center space-x-2 p-1 rounded"
           >
-            <FaPlus className='bg-green-500 text-white p-0.5 text-sm sm:text-base md:text-md'/>
+            <MdLibraryAdd className='text-sm sm:text-base md:text-md' />
             <span className='text-sm sm:text-base md:text-md'>Add</span>
           </button>
         </div>

@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { DataTableHeader } from './DataTableHeader';
 import { DataRow, DataTableProps } from '@/types/dataTableTypes';
 
@@ -14,14 +14,7 @@ export const DataTable: React.FC<DataTableProps> = ({ data }) => {
 
   const [rows, setRows] = useState<DataRow[]>(data);
   const [editingRowId, setEditingRowId] = useState<number | null>(null);
-  const [newRow, setNewRow] = useState<DataRow>({
-    id: Date.now(),
-    name: '',
-    age: '',
-    city: '',
-    date: '',
-    time: ''
-  });
+  const [newRow, setNewRow] = useState<DataRow | null>(null);
 
   const columns = ['id', 'name', 'age', 'city', 'date', 'time'];
 
@@ -35,37 +28,52 @@ export const DataTable: React.FC<DataTableProps> = ({ data }) => {
   };
 
   const handleAddClick = () => {
-    setRows([...rows, newRow]);
-    // Here you would typically also send `newRow` to the database
-    setNewRow({
-      id: Date.now(),
+    const newRowData = {
+      id: rows.length > 0 ? Math.max(...rows.map(row => row.id)) + 1 : 1,
       name: '',
       age: '',
       city: '',
       date: '',
       time: ''
-    });
+    };
+    setRows([newRowData, ...rows]);
+    setNewRow(newRowData);
+    setEditingRowId(newRowData.id);
   };
 
-  const handleEditClick = () => {
-    // Enable editing mode
-    setEditingRowId(editingRowId === null ? -1 : null); // Toggle edit mode
+  const handleSaveClick = () => {
+    if (newRow) {
+      setRows(prevRows => {
+        const updatedRows = prevRows.map(row => (row.id === newRow.id ? newRow : row));
+        return updatedRows.sort((a, b) => a.id - b.id);
+      });
+      setNewRow(null);
+      setEditingRowId(null);
+    }
+  };
+
+  const handleEditClick = (rowId: number) => {
+    setEditingRowId(rowId);
   };
 
   const handleDeleteClick = () => {
-    setRows(rows.filter(row => row.id !== editingRowId));
-    // Here you would typically also send a delete request to the database
-    setEditingRowId(null);
+    if (editingRowId !== null) {
+      setRows(rows.filter(row => row.id !== editingRowId));
+      setEditingRowId(null);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     if (editingRowId !== null) {
-      setRows(rows.map(row =>
-        row.id === editingRowId ? { ...row, [name]: value } : row
-      ));
-    } else {
-      setNewRow({ ...newRow, [name]: value });
+      setRows(prevRows =>
+        prevRows.map(row =>
+          row.id === editingRowId ? { ...row, [name]: value } : row
+        )
+      );
+      if (newRow && editingRowId === newRow.id) {
+        setNewRow({ ...newRow, [name]: value });
+      }
     }
   };
 
@@ -80,6 +88,12 @@ export const DataTable: React.FC<DataTableProps> = ({ data }) => {
   };
 
   const filteredData = rows.filter(filterData);
+
+  const convertTimeToMinutes = (time: string, period: string) => {
+    const [hours, minutes] = time.split(':').map(Number);
+    const totalMinutes = (hours % 12) * 60 + minutes + (period === 'PM' ? 720 : 0);
+    return totalMinutes;
+  };
 
   const sortedData = [...filteredData].sort((a, b) => {
     if (sortColumn === null) return 0;
@@ -110,12 +124,6 @@ export const DataTable: React.FC<DataTableProps> = ({ data }) => {
     return 0;
   });
 
-  const convertTimeToMinutes = (time: string, period: string) => {
-    const [hours, minutes] = time.split(':').map(Number);
-    const totalMinutes = (hours % 12) * 60 + minutes + (period === 'PM' ? 720 : 0);
-    return totalMinutes;
-  };
-
   return (
     <div className="bg-gray-50">
       <div className="flex items-center justify-center">
@@ -137,13 +145,15 @@ export const DataTable: React.FC<DataTableProps> = ({ data }) => {
                 onFilterChangeTime={setFilterTextTime}
                 onSortChange={handleSortChange}
                 columns={columns}
+                onAddClick={handleAddClick}
                 onEditClick={handleEditClick}
                 onDeleteClick={handleDeleteClick}
-                onAddClick={handleAddClick} isEditing={undefined} setIsEditing={undefined}              />
+                isEditing={editingRowId !== null}
+                setIsEditing={setEditingRowId}
+              />
             </div>
             <div className="flex-grow overflow-auto">
               <table className="w-full min-w-full table-fixed border-t shadow border-gray-300 text-xs sm:text-sm md:text-base">
-                
                 <tbody>
                   {sortedData.map((row) => (
                     <tr key={row.id} className="hover:bg-gray-100">
@@ -152,7 +162,7 @@ export const DataTable: React.FC<DataTableProps> = ({ data }) => {
                           key={column}
                           className={`p-4 border-b text-left ${index === 0 ? 'w-1/6' : 'w-1/6'}`}
                         >
-                          {editingRowId === row.id ? (
+                          {(editingRowId === row.id) ? (
                             <input
                               name={column}
                               value={row[column as keyof DataRow]}
@@ -167,14 +177,14 @@ export const DataTable: React.FC<DataTableProps> = ({ data }) => {
                       <td className="p-4 border-b text-left w-1/6">
                         {editingRowId === row.id ? (
                           <button
-                            onClick={() => setEditingRowId(null)}
+                            onClick={handleSaveClick}
                             className="bg-green-500 text-white rounded p-2 text-xs sm:text-sm md:text-base"
                           >
                             Save
                           </button>
                         ) : (
                           <button
-                            onClick={() => setEditingRowId(row.id)}
+                            onClick={() => handleEditClick(row.id)}
                             className="bg-blue-500 text-white rounded p-2 text-xs sm:text-sm md:text-base"
                           >
                             Edit
