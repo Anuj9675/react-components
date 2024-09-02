@@ -146,7 +146,7 @@ export const DataTable: React.FC<DataTableProps> = ({ data }) => {
   return (
     <div className="bg-gray-50">
       <div className="flex items-center justify-center">
-        <div className="w-full max-w-full sm:max-w-4xl md:max-w-6xl border border-gray-300 rounded shadow-lg bg-white">
+        <div className="w-full max-w-full  border border-gray-300 rounded shadow-lg bg-white">
           <div className="h-screen flex flex-col">
             <div className="flex-shrink-0">
               <DataTableHeader
@@ -198,6 +198,7 @@ export const DataTable: React.FC<DataTableProps> = ({ data }) => {
                       <td className="p-4 border-b text-left w-1/6">
                         {editingRowId === row.id ? (
                           <>
+                            <div className='flex flex-row gap-2'>
                             <button
                               onClick={handleEditSaveClick}
                               className="bg-green-500 hover:bg-green-600 text-white rounded p-2 text-xs sm:text-sm md:text-sm"
@@ -206,10 +207,11 @@ export const DataTable: React.FC<DataTableProps> = ({ data }) => {
                             </button>
                             <button
                               onClick={handleCancelClick}
-                              className="bg-red-500 hover:bg-red-600 text-white rounded p-2 text-xs sm:text-sm md:text-sm ml-2"
+                              className="bg-red-500 hover:bg-red-600 text-white rounded p-2 text-xs sm:text-sm md:text-sm "
                             >
                               Delete
                             </button>
+                            </div>
                           </>
                         ) : (
                           <button
