@@ -29,6 +29,8 @@ export interface DataTableHeaderProps {
   onAddClick: any;
   isEditing: any;
   setIsEditing: any;
+  onSaveClick: () => void;  
+  isSaveEnabled: boolean;  
 }
 
 export interface DataTableProps {

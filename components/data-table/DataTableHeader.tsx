@@ -69,35 +69,35 @@ export const DataTableHeader: React.FC<DataTableHeaderProps> = ({
             placeholder="Search Name"
             value={filterTextName}
             onChange={(e) => handleFilterChange('Name', e.target.value)}
-            className="border border-gray-300 rounded p-2 text-sm sm:text-base md:text-md w-full md:w-32"
+            className="border border-gray-300 rounded p-2 text-sm sm:text-base md:text-sm w-full md:w-32"
           />
           <input
             type="text"
             placeholder="Search Age"
             value={filterTextAge}
             onChange={(e) => handleFilterChange('Age', e.target.value)}
-            className="border border-gray-300 rounded p-2 text-sm sm:text-base md:text-md w-full md:w-32"
+            className="border border-gray-300 rounded p-2 text-sm sm:text-base md:text-sm w-full md:w-32"
           />
           <input
             type="text"
             placeholder="Search City"
             value={filterTextCity}
             onChange={(e) => handleFilterChange('City', e.target.value)}
-            className="border border-gray-300 rounded p-2 text-sm sm:text-base md:text-md w-full md:w-32"
+            className="border border-gray-300 rounded p-2 text-sm sm:text-base md:text-sm w-full md:w-32"
           />
           <input
             type="text"
             placeholder="Search Date"
             value={filterTextDate}
             onChange={(e) => handleFilterChange('Date', e.target.value)}
-            className="border border-gray-300 rounded p-2 text-sm sm:text-base md:text-md w-full md:w-32"
+            className="border border-gray-300 rounded p-2 text-sm sm:text-base md:text-sm w-full md:w-32"
           />
           <input
             type="text"
             placeholder="Search Time"
             value={filterTextTime}
             onChange={(e) => handleFilterChange('Time', e.target.value)}
-            className="border border-gray-300 rounded p-2 text-sm sm:text-base md:text-md w-full  md:w-32"
+            className="border border-gray-300 rounded p-2 text-sm sm:text-base md:text-sm w-full md:w-32"
           />
         </div>
       </div>
@@ -107,8 +107,8 @@ export const DataTableHeader: React.FC<DataTableHeaderProps> = ({
             onClick={onAddClick}
             className="bg-green-500 text-white flex items-center space-x-2 p-1 rounded"
           >
-            <MdLibraryAdd className='text-sm sm:text-base md:text-md' />
-            <span className='text-sm sm:text-base md:text-md'>Add</span>
+            <MdLibraryAdd className='text-sm ' />
+            <span className='text-sm'>Add</span>
           </button>
         </div>
       </div>
@@ -117,7 +117,7 @@ export const DataTableHeader: React.FC<DataTableHeaderProps> = ({
           {columns.map((column, index) => (
             <div
               key={column}
-              className={`flex text-left font-semibold cursor-pointer ${index === 0 ? 'w-1/6' : 'w-1/6'}`}
+              className={`flex text-left font-medium cursor-pointer ${index === 0 ? 'w-1/6' : 'w-1/6'}`}
             >
               <div className="flex items-center">
                 <span className="mr-2">{column.charAt(0).toUpperCase() + column.slice(1)}</span>

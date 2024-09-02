@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { DataTableHeader } from './DataTableHeader';
 import { DataRow, DataTableProps } from '@/types/dataTableTypes';
+import { MdLibraryAdd } from 'react-icons/md';
 
 export const DataTable: React.FC<DataTableProps> = ({ data }) => {
   const [filterTextName, setFilterTextName] = useState<string>('');
@@ -45,15 +46,40 @@ export const DataTable: React.FC<DataTableProps> = ({ data }) => {
     if (newRow) {
       setRows(prevRows => {
         const updatedRows = prevRows.map(row => (row.id === newRow.id ? newRow : row));
-        return updatedRows.sort((a, b) => a.id - b.id);
+        return updatedRows.sort((a, b) => a.id - b.id); // Ensure rows are sorted by ID
       });
       setNewRow(null);
       setEditingRowId(null);
     }
   };
 
+  const handleEditSaveClick = () => {
+    if (editingRowId !== null && newRow) {
+      setRows(prevRows => {
+        const updatedRows = prevRows.map(row =>
+          row.id === editingRowId ? { ...row, ...newRow } : row
+        );
+        return updatedRows.sort((a, b) => a.id - b.id); // Ensure rows are sorted by ID
+      });
+      setEditingRowId(null);
+      setNewRow(null);
+    }
+  };
+
+  const handleCancelClick = () => {
+    if (newRow) {
+      setRows(prevRows => prevRows.filter(row => row.id !== newRow.id));
+      setNewRow(null);
+    }
+    setEditingRowId(null);
+  };
+
   const handleEditClick = (rowId: number) => {
     setEditingRowId(rowId);
+    const rowToEdit = rows.find(row => row.id === rowId);
+    if (rowToEdit) {
+      setNewRow(rowToEdit);
+    }
   };
 
   const handleDeleteClick = () => {
@@ -65,15 +91,8 @@ export const DataTable: React.FC<DataTableProps> = ({ data }) => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    if (editingRowId !== null) {
-      setRows(prevRows =>
-        prevRows.map(row =>
-          row.id === editingRowId ? { ...row, [name]: value } : row
-        )
-      );
-      if (newRow && editingRowId === newRow.id) {
-        setNewRow({ ...newRow, [name]: value });
-      }
+    if (newRow) {
+      setNewRow(prev => prev ? { ...prev, [name]: value } : null);
     }
   };
 
@@ -150,10 +169,12 @@ export const DataTable: React.FC<DataTableProps> = ({ data }) => {
                 onDeleteClick={handleDeleteClick}
                 isEditing={editingRowId !== null}
                 setIsEditing={setEditingRowId}
+                onSaveClick={handleSaveClick}
+                isSaveEnabled={false} // Disable header save button
               />
             </div>
             <div className="flex-grow overflow-auto">
-              <table className="w-full min-w-full table-fixed border-t shadow border-gray-300 text-xs sm:text-sm md:text-base">
+              <table className="w-full min-w-full table-fixed border-t shadow border-gray-300 text-xs sm:text-sm md:text-sm">
                 <tbody>
                   {sortedData.map((row) => (
                     <tr key={row.id} className="hover:bg-gray-100">
@@ -165,7 +186,7 @@ export const DataTable: React.FC<DataTableProps> = ({ data }) => {
                           {(editingRowId === row.id) ? (
                             <input
                               name={column}
-                              value={row[column as keyof DataRow]}
+                              value={newRow ? newRow[column as keyof DataRow] : ''}
                               onChange={handleChange}
                               className="border border-gray-300 rounded p-2 w-full"
                             />
@@ -176,16 +197,24 @@ export const DataTable: React.FC<DataTableProps> = ({ data }) => {
                       ))}
                       <td className="p-4 border-b text-left w-1/6">
                         {editingRowId === row.id ? (
-                          <button
-                            onClick={handleSaveClick}
-                            className="bg-green-500 text-white rounded p-2 text-xs sm:text-sm md:text-base"
-                          >
-                            Save
-                          </button>
+                          <>
+                            <button
+                              onClick={handleEditSaveClick}
+                              className="bg-green-500 hover:bg-green-600 text-white rounded p-2 text-xs sm:text-sm md:text-sm"
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={handleCancelClick}
+                              className="bg-red-500 hover:bg-red-600 text-white rounded p-2 text-xs sm:text-sm md:text-sm ml-2"
+                            >
+                              Delete
+                            </button>
+                          </>
                         ) : (
                           <button
                             onClick={() => handleEditClick(row.id)}
-                            className="bg-blue-500 text-white rounded p-2 text-xs sm:text-sm md:text-base"
+                            className="bg-yellow-500 hover:bg-yellow-600 text-white rounded p-2 text-xs sm:text-sm md:text-sm"
                           >
                             Edit
                           </button>
