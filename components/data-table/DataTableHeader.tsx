@@ -72,7 +72,7 @@ export const DataTableHeader: React.FC<DataTableHeaderProps> = ({
         </div>
       </div>
       <div className="bg-gray-100 border-t border-gray-300">
-        <div className="p-2 md:p-4 flex flex-row">
+        <div className="p-2 md:p-4 flex flex-row text-xs sm:text-sm md:text-base">
           {columns.map((column, index) => (
             <div
               key={column}

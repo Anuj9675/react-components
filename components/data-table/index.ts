@@ -2,3 +2,4 @@
 export * from './DataTable';
 export * from './dummyData';
 export * from './DataTableHeader';
+export * from './Table';
