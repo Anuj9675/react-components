@@ -1,100 +1,129 @@
-'use client';
-import React, { useState } from 'react';
-import { DataTableHeader } from './DataTableHeader';
-import { DataRow, DataTableProps } from '@/types/dataTableTypes';
-import { MdLibraryAdd } from 'react-icons/md';
+"use client"
+
+import type React from "react"
+import { useState, useEffect } from "react"
+import { DataTableHeader } from "./DataTableHeader"
+import { Edit2, Save, X, Trash2, Plus, GripVertical } from "lucide-react"
+import type { DataTableProps, DataRow } from "@/types/dataTableTypes"
+import { Card, CardContent } from "./card"
 
 export const DataTable: React.FC<DataTableProps> = ({ data }) => {
-  const [filterTextName, setFilterTextName] = useState<string>('');
-  const [filterTextAge, setFilterTextAge] = useState<string>('');
-  const [filterTextCity, setFilterTextCity] = useState<string>('');
-  const [filterTextDate, setFilterTextDate] = useState<string>('');
-  const [filterTextTime, setFilterTextTime] = useState<string>('');
-  const [sortColumn, setSortColumn] = useState<string | null>(null);
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [filterTextName, setFilterTextName] = useState("")
+  const [filterTextAge, setFilterTextAge] = useState("")
+  const [filterTextCity, setFilterTextCity] = useState("")
+  const [filterTextDate, setFilterTextDate] = useState("")
+  const [filterTextTime, setFilterTextTime] = useState("")
+  const [sortColumn, setSortColumn] = useState<string | null>(null)
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
+  const [rows, setRows] = useState<DataRow[]>(data)
+  const [editingRowId, setEditingRowId] = useState<number | null>(null)
+  const [newRow, setNewRow] = useState<DataRow | null>(null)
+  const [draggedRowId, setDraggedRowId] = useState<number | null>(null)
+  const [dragOverRowId, setDragOverRowId] = useState<number | null>(null)
 
-  const [rows, setRows] = useState<DataRow[]>(data);
-  const [editingRowId, setEditingRowId] = useState<number | null>(null);
-  const [newRow, setNewRow] = useState<DataRow | null>(null);
+  const [alert, setAlert] = useState<{ message: string; type: "success" | "error" } | undefined>(undefined)
 
-  const columns = ['id', 'name', 'age', 'city', 'date', 'time'];
+  const showAlert = (message: string, type: "success" | "error" = "success") => {
+    setAlert({ message, type })
+    setTimeout(() => setAlert(undefined), 3000)
+  }
+
+  const columns = ["id", "name", "age", "city", "date", "time"]
 
   const handleSortChange = (column: string) => {
     if (sortColumn === column) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc")
     } else {
-      setSortColumn(column);
-      setSortDirection('asc');
+      setSortColumn(column)
+      setSortDirection("asc")
     }
-  };
+  }
 
   const handleAddClick = () => {
-    const newRowData = {
-      id: rows.length > 0 ? Math.max(...rows.map(row => row.id)) + 1 : 1,
-      name: '',
-      age: '',
-      city: '',
-      date: '',
-      time: ''
-    };
-    setRows([newRowData, ...rows]);
-    setNewRow(newRowData);
-    setEditingRowId(newRowData.id);
-  };
-
-  const handleSaveClick = () => {
-    if (newRow) {
-      setRows(prevRows => {
-        const updatedRows = prevRows.map(row => (row.id === newRow.id ? newRow : row));
-        return updatedRows.sort((a, b) => a.id - b.id); // Ensure rows are sorted by ID
-      });
-      setNewRow(null);
-      setEditingRowId(null);
+    const newRowData: DataRow = {
+      id: rows.length + 1,
+      name: "",
+      age: "",
+      city: "",
+      date: "",
+      time: "",
     }
-  };
+    setNewRow(newRowData)
+    setEditingRowId(newRowData.id)
+  }
 
   const handleEditSaveClick = () => {
     if (editingRowId !== null && newRow) {
-      setRows(prevRows => {
-        const updatedRows = prevRows.map(row =>
-          row.id === editingRowId ? { ...row, ...newRow } : row
-        );
-        return updatedRows.sort((a, b) => a.id - b.id); // Ensure rows are sorted by ID
-      });
-      setEditingRowId(null);
-      setNewRow(null);
+      const existingIndex = rows.findIndex((r) => r.id === newRow.id)
+      const updatedRows =
+        existingIndex >= 0
+          ? rows.map((r, i) => (i === existingIndex ? newRow : r))
+          : [...rows, newRow]
+
+      const resequenced = updatedRows.map((row, index) => ({ ...row, id: index + 1 }))
+      setRows(resequenced)
+      setEditingRowId(null)
+      setNewRow(null)
+      showAlert(existingIndex >= 0 ? "Record updated successfully!" : "New record added.")
     }
-  };
+  }
 
   const handleCancelClick = () => {
-    if (newRow) {
-      setRows(prevRows => prevRows.filter(row => row.id !== newRow.id));
-      setNewRow(null);
-    }
-    setEditingRowId(null);
-  };
+    setEditingRowId(null)
+    setNewRow(null)
+  }
 
   const handleEditClick = (rowId: number) => {
-    setEditingRowId(rowId);
-    const rowToEdit = rows.find(row => row.id === rowId);
-    if (rowToEdit) {
-      setNewRow(rowToEdit);
-    }
-  };
+    setEditingRowId(rowId)
+    const rowToEdit = rows.find((row) => row.id === rowId)
+    if (rowToEdit) setNewRow({ ...rowToEdit })
+  }
 
-  const handleDeleteClick = () => {
-    if (editingRowId !== null) {
-      setRows(rows.filter(row => row.id !== editingRowId));
-      setEditingRowId(null);
+  const handleDeleteClick = (rowId: number) => {
+    const updated = rows.filter((row) => row.id !== rowId)
+    const resequenced = updated.map((row, index) => ({ ...row, id: index + 1 }))
+    setRows(resequenced)
+    if (editingRowId === rowId) {
+      setEditingRowId(null)
+      setNewRow(null)
     }
-  };
+    showAlert("Record deleted successfully.")
+  }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
     if (newRow) {
-      setNewRow(prev => prev ? { ...prev, [name]: value } : null);
+      setNewRow((prev) => (prev ? { ...prev, [name]: value } : null))
     }
-  };
+  }
+
+  const handleDragStart = (e: React.DragEvent, rowId: number) => {
+    setDraggedRowId(rowId)
+    e.dataTransfer.effectAllowed = "move"
+    e.dataTransfer.setData("text/html", "")
+  }
+
+  const handleDragOver = (e: React.DragEvent, rowId: number) => {
+    e.preventDefault()
+    setDragOverRowId(rowId)
+  }
+
+  const handleDrop = (e: React.DragEvent, dropRowId: number) => {
+    e.preventDefault()
+    if (draggedRowId === null || draggedRowId === dropRowId) return
+
+    const draggedIndex = rows.findIndex((row) => row.id === draggedRowId)
+    const dropIndex = rows.findIndex((row) => row.id === dropRowId)
+
+    const updated = [...rows]
+    const [draggedRow] = updated.splice(draggedIndex, 1)
+    updated.splice(dropIndex, 0, draggedRow)
+
+    const resequenced = updated.map((row, index) => ({ ...row, id: index + 1 }))
+    setRows(resequenced)
+    setDraggedRowId(null)
+    setDragOverRowId(null)
+  }
 
   const filterData = (row: DataRow) => {
     return (
@@ -103,133 +132,157 @@ export const DataTable: React.FC<DataTableProps> = ({ data }) => {
       (row.city.toLowerCase().includes(filterTextCity.toLowerCase()) || !filterTextCity) &&
       (row.date.toLowerCase().includes(filterTextDate.toLowerCase()) || !filterTextDate) &&
       (row.time.toLowerCase().includes(filterTextTime.toLowerCase()) || !filterTextTime)
-    );
-  };
+    )
+  }
 
-  const filteredData = rows.filter(filterData);
-
-  const convertTimeToMinutes = (time: string, period: string) => {
-    const [hours, minutes] = time.split(':').map(Number);
-    const totalMinutes = (hours % 12) * 60 + minutes + (period === 'PM' ? 720 : 0);
-    return totalMinutes;
-  };
-
-  const sortedData = [...filteredData].sort((a, b) => {
-    if (sortColumn === null) return 0;
-    const aValue = a[sortColumn as keyof DataRow];
-    const bValue = b[sortColumn as keyof DataRow];
-
-    if (typeof aValue === 'string' && typeof bValue === 'string') {
-      if (sortColumn === 'time') {
-        const [aTime, aPeriod] = aValue.split(' ') as [string, string];
-        const [bTime, bPeriod] = bValue.split(' ') as [string, string];
-        const aTimeMinutes = convertTimeToMinutes(aTime, aPeriod);
-        const bTimeMinutes = convertTimeToMinutes(bTime, bPeriod);
-        return (aTimeMinutes - bTimeMinutes) * (sortDirection === 'asc' ? 1 : -1);
-      }
-
-      const aDate = new Date(aValue);
-      const bDate = new Date(bValue);
-      if (!isNaN(aDate.getTime()) && !isNaN(bDate.getTime())) {
-        return (aDate.getTime() - bDate.getTime()) * (sortDirection === 'asc' ? 1 : -1);
-      }
-      return (aValue < bValue ? -1 : 1) * (sortDirection === 'asc' ? 1 : -1);
-    }
-
-    if (typeof aValue === 'number' && typeof bValue === 'number') {
-      return (aValue - bValue) * (sortDirection === 'asc' ? 1 : -1);
-    }
-
-    return 0;
-  });
+  const filteredData = rows.filter(filterData)
+  const sortedData = [...filteredData]
+  if (newRow && !rows.find((r) => r.id === newRow.id)) sortedData.unshift(newRow)
 
   return (
-    <div className="bg-gray-50">
-      <div className="flex items-center justify-center">
-        <div className="w-full max-w-full  border border-gray-300 rounded shadow-lg bg-white">
-          <div className="h-screen flex flex-col">
-            <div className="flex-shrink-0">
-              <DataTableHeader
-                filterTextName={filterTextName}
-                filterTextAge={filterTextAge}
-                filterTextCity={filterTextCity}
-                filterTextDate={filterTextDate}
-                filterTextTime={filterTextTime}
-                sortColumn={sortColumn}
-                sortDirection={sortDirection}
-                onFilterChangeName={setFilterTextName}
-                onFilterChangeAge={setFilterTextAge}
-                onFilterChangeCity={setFilterTextCity}
-                onFilterChangeDate={setFilterTextDate}
-                onFilterChangeTime={setFilterTextTime}
-                onSortChange={handleSortChange}
-                columns={columns}
-                onAddClick={handleAddClick}
-                onEditClick={handleEditClick}
-                onDeleteClick={handleDeleteClick}
-                isEditing={editingRowId !== null}
-                setIsEditing={setEditingRowId}
-                onSaveClick={handleSaveClick}
-                isSaveEnabled={false} // Disable header save button
-              />
+    <div className="h-screen overflow-y-auto bg-gradient-to-br from-gray-50 to-gray-100 pt-4 px-4">
+      <div className="mx-auto">
+        <Card className="shadow-2xl border-0">
+
+          <DataTableHeader
+            filterTextName={filterTextName}
+            filterTextAge={filterTextAge}
+            filterTextCity={filterTextCity}
+            filterTextDate={filterTextDate}
+            filterTextTime={filterTextTime}
+            sortColumn={sortColumn}
+            sortDirection={sortDirection}
+            onFilterChangeName={setFilterTextName}
+            onFilterChangeAge={setFilterTextAge}
+            onFilterChangeCity={setFilterTextCity}
+            onFilterChangeDate={setFilterTextDate}
+            onFilterChangeTime={setFilterTextTime}
+            onSortChange={handleSortChange}
+            columns={columns}
+            onAddClick={handleAddClick}
+            alert={alert}
+          />
+
+          {/* Desktop Table */}
+          <div className="max-h-[70vh] overflow-y-auto hidden md:block">
+            <div className="grid grid-cols-8 py-3 px-4 bg-gray-200 font-semibold text-sm text-gray-700">
+              <div className="text-center">Drag</div>
+              {columns.map((col) => (
+                <div key={col} className="text-center cursor-pointer" onClick={() => handleSortChange(col)}>
+                  {col.toUpperCase()}
+                </div>
+              ))}
+              <div className="text-center">Actions</div>
             </div>
-            <div className="flex-grow overflow-auto">
-              <table className="w-full min-w-full table-fixed border-t shadow border-gray-300 text-xs sm:text-sm md:text-sm">
-                <tbody>
-                  {sortedData.map((row) => (
-                    <tr key={row.id} className="hover:bg-gray-100">
-                      {columns.map((column, index) => (
-                        <td
-                          key={column}
-                          className={`p-4 border-b text-left ${index === 0 ? 'w-1/6' : 'w-1/6'}`}
-                        >
-                          {(editingRowId === row.id) ? (
-                            <input
-                              name={column}
-                              value={newRow ? newRow[column as keyof DataRow] : ''}
-                              onChange={handleChange}
-                              className="border border-gray-300 rounded p-2 w-full"
-                            />
-                          ) : (
-                            row[column as keyof DataRow]
-                          )}
-                        </td>
-                      ))}
-                      <td className="p-4 border-b text-left w-1/6">
-                        {editingRowId === row.id ? (
+
+            {sortedData.map((row, index) => (
+              <div
+                key={`row-${row.id}-${index}`}
+                draggable={editingRowId !== row.id}
+                onDragStart={(e) => handleDragStart(e, row.id)}
+                onDragOver={(e) => handleDragOver(e, row.id)}
+                onDrop={(e) => handleDrop(e, row.id)}
+                className="grid grid-cols-8 py-2 px-4 border-b bg-white hover:bg-gray-50"
+              >
+                <div className="flex justify-center items-center">
+                  <GripVertical className="h-4 w-4 text-gray-400" />
+                </div>
+                {columns.map((col) => (
+                  <div key={col} className="flex justify-center items-center text-sm">
+                    {col === "id" ? (
+                      <span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        #{row.id.toString().padStart(3, "0")}
+                      </span>
+                    ) : newRow?.id === row.id && editingRowId === row.id ? (
+                      <input
+                        name={col}
+                        value={newRow[col as keyof DataRow]}
+                        onChange={handleChange}
+                        className="w-full px-2 py-1 text-xs border text-center"
+                      />
+                    ) : (
+                      <span>{row[col as keyof DataRow]}</span>
+                    )}
+                  </div>
+                ))}
+                <div className="flex justify-center items-center gap-1">
+                  {newRow?.id === row.id && editingRowId === row.id ? (
+                    <>
+                      <button onClick={handleEditSaveClick} className="p-1 bg-green-600 text-white rounded">
+                        <Save className="h-4 w-4" />
+                      </button>
+                      <button onClick={handleCancelClick} className="p-1 bg-gray-600 text-white rounded">
+                        <X className="h-4 w-4" />
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button onClick={() => handleEditClick(row.id)} className="p-1 bg-blue-600 text-white rounded">
+                        <Edit2 className="h-4 w-4" />
+                      </button>
+                      <button onClick={() => handleDeleteClick(row.id)} className="p-1 bg-red-600 text-white rounded">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="md:hidden p-4 space-y-4">
+            {sortedData.map((row) => {
+              const isEditing = newRow?.id === row.id && editingRowId === row.id
+              return (
+                <Card key={row.id}>
+                  <CardContent className="space-y-3">
+                    <div className="flex justify-between text-sm mb-2">
+                      <span className="text-gray-500">#{row.id.toString().padStart(3, "0")}</span>
+                      <div className="flex gap-2">
+                        {isEditing ? (
                           <>
-                            <div className='flex flex-row gap-2'>
-                            <button
-                              onClick={handleEditSaveClick}
-                              className="bg-green-500 hover:bg-green-600 text-white rounded p-2 text-xs sm:text-sm md:text-sm"
-                            >
-                              Save
+                            <button onClick={handleEditSaveClick} className="text-green-600">
+                              <Save className="h-4 w-4" />
                             </button>
-                            <button
-                              onClick={handleCancelClick}
-                              className="bg-red-500 hover:bg-red-600 text-white rounded p-2 text-xs sm:text-sm md:text-sm "
-                            >
-                              Delete
+                            <button onClick={handleCancelClick} className="text-gray-600">
+                              <X className="h-4 w-4" />
                             </button>
-                            </div>
                           </>
                         ) : (
-                          <button
-                            onClick={() => handleEditClick(row.id)}
-                            className="bg-yellow-500 hover:bg-yellow-600 text-white rounded p-2 text-xs sm:text-sm md:text-sm"
-                          >
-                            Edit
-                          </button>
+                          <>
+                            <button onClick={() => handleEditClick(row.id)} className="text-blue-600">
+                              <Edit2 className="h-4 w-4" />
+                            </button>
+                            <button onClick={() => handleDeleteClick(row.id)} className="text-red-600">
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </>
                         )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      </div>
+                    </div>
+                    {columns.slice(1).map((col) => (
+                      <div key={col} className="flex justify-between text-sm items-center">
+                        <span className="text-gray-600 capitalize">{col}</span>
+                        {isEditing ? (
+                          <input
+                            name={col}
+                            value={newRow?.[col as keyof DataRow] || ""}
+                            onChange={handleChange}
+                            className="ml-4 text-right border px-2 py-1 rounded w-1/2 text-sm"
+                          />
+                        ) : (
+                          <span className="font-medium text-gray-900">{row[col as keyof DataRow]}</span>
+                        )}
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              )
+            })}
           </div>
-        </div>
+        </Card>
       </div>
     </div>
-  );
-};
+  )
+}

@@ -1,38 +1,40 @@
-// frontend/types/dataTableTypes.ts
-
+import type React from "react"
 export interface DataRow {
-  id: number;
-  name: string;
-  age: any;
-  city: string;
-  date: string;
-  time: string;
-}
-
-export interface DataTableHeaderProps {
-  filterTextName: string;
-  filterTextAge: string;
-  filterTextCity: string;
-  filterTextDate: string;
-  filterTextTime: string;
-  sortColumn: string | null;
-  sortDirection: "asc" | "desc";
-  onFilterChangeName: (text: string) => void;
-  onFilterChangeAge: (text: string) => void;
-  onFilterChangeCity: (text: string) => void;
-  onFilterChangeDate: (text: string) => void;
-  onFilterChangeTime: (text: string) => void;
-  onSortChange: (column: string) => void;
-  columns: string[];
-  onEditClick: any;
-  onDeleteClick: any;
-  onAddClick: any;
-  isEditing: any;
-  setIsEditing: any;
-  onSaveClick: () => void;  
-  isSaveEnabled: boolean;  
+  id: number
+  name: string
+  age: string | number
+  city: string
+  date: string
+  time: string
 }
 
 export interface DataTableProps {
-  data: DataRow[];
+  data: DataRow[]
+}
+
+export interface DataTableHeaderProps {
+  filterTextName: string
+  filterTextAge: string
+  filterTextCity: string
+  filterTextDate: string
+  filterTextTime: string
+  sortColumn: string | null
+  sortDirection: "asc" | "desc"
+  onFilterChangeName: (value: string) => void
+  onFilterChangeAge: (value: string) => void
+  onFilterChangeCity: (value: string) => void
+  onFilterChangeDate: (value: string) => void
+  onFilterChangeTime: (value: string) => void
+  onSortChange: (column: string) => void
+  columns: string[]
+  onAddClick: () => void
+  alert?: {
+    type: "success" | "error"
+    message: string
+  }
+}
+
+export interface CardProps {
+  children: React.ReactNode
+  className?: string
 }
