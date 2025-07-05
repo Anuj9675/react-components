@@ -1,13 +1,16 @@
 "use client"
 
-import type React from "react"
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 import { DataTableHeader } from "./DataTableHeader"
-import { Edit2, Save, X, Trash2, Plus, GripVertical } from "lucide-react"
-import type { DataTableProps, DataRow } from "@/types/dataTableTypes"
+import { Edit2, Save, X, Trash2, GripVertical } from "lucide-react"
+import type { DataRow } from "@/types/dataTableTypes"
 import { Card, CardContent } from "./card"
+import { useTableData, useSaveTableData } from "@/hooks/useData"
 
-export const DataTable: React.FC<DataTableProps> = ({ data }) => {
+export const DataTable = () => {
+  const { data } = useTableData()
+  const { save } = useSaveTableData()
+  const [rows, setRows] = useState<DataRow[]>([])
   const [filterTextName, setFilterTextName] = useState("")
   const [filterTextAge, setFilterTextAge] = useState("")
   const [filterTextCity, setFilterTextCity] = useState("")
@@ -15,24 +18,27 @@ export const DataTable: React.FC<DataTableProps> = ({ data }) => {
   const [filterTextTime, setFilterTextTime] = useState("")
   const [sortColumn, setSortColumn] = useState<string | null>(null)
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
-  const [rows, setRows] = useState<DataRow[]>(data)
   const [editingRowId, setEditingRowId] = useState<number | null>(null)
   const [newRow, setNewRow] = useState<DataRow | null>(null)
+  const [alert, setAlert] = useState<{ message: string; type: "success" | "error" } | undefined>(undefined)
   const [draggedRowId, setDraggedRowId] = useState<number | null>(null)
   const [dragOverRowId, setDragOverRowId] = useState<number | null>(null)
 
-  const [alert, setAlert] = useState<{ message: string; type: "success" | "error" } | undefined>(undefined)
+  const columns = ["id", "name", "age", "city", "date", "time"]
+
+  useEffect(() => {
+    setRows(data)
+  }, [data])
 
   const showAlert = (message: string, type: "success" | "error" = "success") => {
     setAlert({ message, type })
     setTimeout(() => setAlert(undefined), 3000)
   }
 
-  const columns = ["id", "name", "age", "city", "date", "time"]
-
   const handleSortChange = (column: string) => {
-    if (sortColumn === column) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc")
+    if (column.startsWith("-")) {
+      setSortColumn(column.slice(1))
+      setSortDirection("desc")
     } else {
       setSortColumn(column)
       setSortDirection("asc")
@@ -52,16 +58,21 @@ export const DataTable: React.FC<DataTableProps> = ({ data }) => {
     setEditingRowId(newRowData.id)
   }
 
+  const handleEditClick = (rowId: number) => {
+    setEditingRowId(rowId)
+    const rowToEdit = rows.find((row) => row.id === rowId)
+    if (rowToEdit) setNewRow({ ...rowToEdit })
+  }
+
   const handleEditSaveClick = () => {
     if (editingRowId !== null && newRow) {
       const existingIndex = rows.findIndex((r) => r.id === newRow.id)
       const updatedRows =
-        existingIndex >= 0
-          ? rows.map((r, i) => (i === existingIndex ? newRow : r))
-          : [...rows, newRow]
+        existingIndex >= 0 ? rows.map((r, i) => (i === existingIndex ? newRow : r)) : [...rows, newRow]
 
       const resequenced = updatedRows.map((row, index) => ({ ...row, id: index + 1 }))
       setRows(resequenced)
+      save(resequenced)
       setEditingRowId(null)
       setNewRow(null)
       showAlert(existingIndex >= 0 ? "Record updated successfully!" : "New record added.")
@@ -73,16 +84,11 @@ export const DataTable: React.FC<DataTableProps> = ({ data }) => {
     setNewRow(null)
   }
 
-  const handleEditClick = (rowId: number) => {
-    setEditingRowId(rowId)
-    const rowToEdit = rows.find((row) => row.id === rowId)
-    if (rowToEdit) setNewRow({ ...rowToEdit })
-  }
-
   const handleDeleteClick = (rowId: number) => {
     const updated = rows.filter((row) => row.id !== rowId)
     const resequenced = updated.map((row, index) => ({ ...row, id: index + 1 }))
     setRows(resequenced)
+    save(resequenced)
     if (editingRowId === rowId) {
       setEditingRowId(null)
       setNewRow(null)
@@ -121,29 +127,58 @@ export const DataTable: React.FC<DataTableProps> = ({ data }) => {
 
     const resequenced = updated.map((row, index) => ({ ...row, id: index + 1 }))
     setRows(resequenced)
+    save(resequenced)
     setDraggedRowId(null)
     setDragOverRowId(null)
   }
 
   const filterData = (row: DataRow) => {
+    const time = row.time.toLowerCase().trim()
+    const filterTime = filterTextTime.toLowerCase().trim()
+
+    const matchTime = () => {
+      if (!filterTime) return true
+
+      const [filterPart, filterMeridian] = filterTime.split(" ")
+      const hasMeridian = filterMeridian === "am" || filterMeridian === "pm"
+
+      if (hasMeridian) {
+        return time.includes(filterPart) && time.includes(filterMeridian)
+      } else {
+        return time.includes(filterPart)
+      }
+    }
+
     return (
       (row.name.toLowerCase().includes(filterTextName.toLowerCase()) || !filterTextName) &&
       (row.age.toString().includes(filterTextAge) || !filterTextAge) &&
       (row.city.toLowerCase().includes(filterTextCity.toLowerCase()) || !filterTextCity) &&
       (row.date.toLowerCase().includes(filterTextDate.toLowerCase()) || !filterTextDate) &&
-      (row.time.toLowerCase().includes(filterTextTime.toLowerCase()) || !filterTextTime)
+      matchTime()
     )
   }
 
   const filteredData = rows.filter(filterData)
   const sortedData = [...filteredData]
+
+  if (sortColumn) {
+    sortedData.sort((a, b) => {
+      const valA = a[sortColumn as keyof DataRow] || ""
+      const valB = b[sortColumn as keyof DataRow] || ""
+      const result = valA.toString().localeCompare(valB.toString(), undefined, {
+        numeric: true,
+        sensitivity: "base"
+      })
+      return sortDirection === "asc" ? result : -result
+    })
+  }
+
   if (newRow && !rows.find((r) => r.id === newRow.id)) sortedData.unshift(newRow)
 
   return (
     <div className="h-screen overflow-y-auto bg-gradient-to-br from-gray-50 to-gray-100 pt-4 px-4">
       <div className="mx-auto">
         <Card className="shadow-2xl border-0">
-
           <DataTableHeader
             filterTextName={filterTextName}
             filterTextAge={filterTextAge}
