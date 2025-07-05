@@ -31,7 +31,9 @@ export interface DataTableHeaderProps {
   alert?: {
     type: "success" | "error"
     message: string
-  }
+  };
+   viewMode: "table" | "card";
+  onViewModeChange: (mode: "table" | "card") => void;
 }
 
 export interface CardProps {
